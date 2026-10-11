@@ -48,7 +48,7 @@ fn writeMetadata(io: Io, allocator: std.mem.Allocator, buf: []u8, out_dir: []con
 }
 
 fn writeWheel(io: Io, allocator: std.mem.Allocator, buf: []u8, out_dir: []const u8) ![]u8 {
-    const wheel_info = try std.fmt.bufPrint(buf, "Wheel-Version: 1.0\nGenerator: voltforge\nRoot-Is-Purelib: false\nTag: {s}\n", .{config.tag});
+    const wheel_info = try std.fmt.bufPrint(buf, "Wheel-Version: 1.0\nGenerator: zigweld\nRoot-Is-Purelib: false\nTag: {s}\n", .{config.tag});
 
     try writeText(io, try std.fmt.allocPrint(allocator, "{s}/WHEEL", .{out_dir}), wheel_info);
 

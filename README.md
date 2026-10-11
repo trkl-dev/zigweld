@@ -1,4 +1,7 @@
-# Voltforge
+# zigweld
+
+> "See a need, fill a need!"
+> -- Bigweld
 
 A toolkit for packaging Zig code as Python extension modules.
 
@@ -11,10 +14,10 @@ A toolkit for packaging Zig code as Python extension modules.
 
 ## Usage
 
-Add voltforge as a dependency in your project's `build.zig.zon` (see [examples/python_fib](examples/python_fib) for a working example):
+Add zigweld as a dependency in your project's `build.zig.zon` (see [examples/python_fib](examples/python_fib) for a working example):
 
 ```zig
-const voltforge = @import("voltforge");
+const zigweld = @import("zigweld");
 
 pub fn build(b: *std.Build) void {
     // ...
@@ -23,7 +26,7 @@ pub fn build(b: *std.Build) void {
 
     // Set up the build step
     const wheels_step = b.step("wheels", "Build Python wheels");
-    const volt = voltforge.buildWheels(b, mod, "mypackage", "0.1.0");
+    const volt = zigweld.buildWheels(b, mod, "mypackage", "0.1.0");
 
     // To generate just the adapted binary
     wheels_step.dependOn(&volt.lib_file.step);   // zig-out/wheels/mypackage.so
@@ -53,7 +56,7 @@ Work is active on supporting different data structures and interfacing methods.
 
 ## Examples
 
-See [examples/python_fib](examples/python_fib) for an example project which uses voltforge
+See [examples/python_fib](examples/python_fib) for an example project which uses zigweld
 
 ## Requirements
 

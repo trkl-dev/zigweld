@@ -171,18 +171,18 @@ fn buildWheel(
         .linux => switch (host.cpu.arch) {
             .x86_64 => "linux_x86_64",
             .aarch64 => "linux_aarch64",
-            else => std.debug.panic("voltforge: no wheel platform tag for {s} {s}", .{
+            else => std.debug.panic("zigweld: no wheel platform tag for {s} {s}", .{
                 @tagName(host.os.tag), @tagName(host.cpu.arch),
             }),
         },
         .macos => switch (host.cpu.arch) {
             .aarch64 => "macosx_27_0_arm64",
             // .x86_64 => "x86_64",
-            else => std.debug.panic("voltforge: no wheel platform tag for {s} {s}", .{
+            else => std.debug.panic("zigweld: no wheel platform tag for {s} {s}", .{
                 @tagName(host.os.tag), @tagName(host.cpu.arch),
             }),
         },
-        else => std.debug.panic("voltforge: no wheel platform tag for {s}", .{
+        else => std.debug.panic("zigweld: no wheel platform tag for {s}", .{
             @tagName(host.os.tag),
         }),
     };

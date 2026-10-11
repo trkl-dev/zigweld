@@ -1,6 +1,6 @@
 const std = @import("std");
 const zon = @import("build.zig.zon");
-const voltforge = @import("voltforge");
+const zigweld = @import("zigweld");
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
@@ -12,13 +12,13 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    // ############ VOLTFORGE USAGE ############## //
+    // ############ zigweld USAGE ############## //
     const wheels_step = b.step("wheels", "Build Python wheels");
-    const volt = voltforge.buildWheels(b, mod, @tagName(zon.name), zon.version);
+    const volt = zigweld.buildWheels(b, mod, @tagName(zon.name), zon.version);
     wheels_step.dependOn(&volt.lib_file.step); // Want the lib
     wheels_step.dependOn(&volt.stub_file.step); // Want the stubs
     wheels_step.dependOn(&volt.wheel_file.step); // Want the wheel
-    // ############ VOLTFORGE USAGE ############## //
+    // ############ zigweld USAGE ############## //
 
     const test_step = b.step("test", "Run test suite");
     const tests = b.addTest(.{
