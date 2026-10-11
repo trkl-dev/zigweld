@@ -6,7 +6,7 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const tests = b.addTest(.{
+    const gen_test = b.addTest(.{
         .root_module = b.createModule(.{
             .root_source_file = b.path("src/gen.zig"),
             .target = target,
@@ -14,10 +14,19 @@ pub fn build(b: *std.Build) void {
         }),
     });
 
-    const run_mod_tests = b.addRunArtifact(tests);
+    const run_gen_test = b.addRunArtifact(gen_test);
 
     const test_step = b.step("test", "Run tests");
-    test_step.dependOn(&run_mod_tests.step);
+    test_step.dependOn(&run_gen_test.step);
+
+    // There is possibly a better way to interface with the example build more directly, but it's
+    // challenging to do so without creating circular dependencies.
+    const run_example_test = b.addSystemCommand(&.{ "zig", "build", "test" });
+    run_example_test.setCwd(b.path("examples/python_fib/"));
+
+    run_example_test.step.dependOn(&run_gen_test.step);
+
+    test_step.dependOn(&run_example_test.step);
 }
 
 pub const Wheels = struct {
@@ -46,6 +55,7 @@ pub fn buildWheels(b: *std.Build, module: *std.Build.Module, name: []const u8, v
     });
 
     const adapter_run = b.addRunArtifact(adapter_exe);
+    adapter_run.setName("generated adapter zig file");
     adapter_run.addFileArg2(module.root_source_file.?, .{});
     const adapter_output_file = adapter_run.addOutputFileArg2(b.fmt("{s}.zig", .{name}), .{});
     const stub_output_file = adapter_run.addOutputFileArg2(b.fmt("{s}.pyi", .{name}), .{});
@@ -124,9 +134,6 @@ pub fn buildWheels(b: *std.Build, module: *std.Build.Module, name: []const u8, v
     };
 }
 
-fn buildAdapter() void {}
-fn buildStubs() void {}
-
 const Wheel = struct {
     file: *std.Build.Step.InstallFile,
     dir: *std.Build.LazyPath,
@@ -189,12 +196,16 @@ fn buildWheel(
 
     const build_wheel_run = b.addRunArtifact(build_wheel_exe);
     build_wheel_run.addFileArg(lib.getEmittedBin());
-    const wheel_output_dir = build_wheel_run.addOutputDirectoryArg2(b.fmt("{s}-{s}.dist-info", .{ name, version }), .{});
+    const wheel_output_dir = build_wheel_run.addOutputDirectoryArg2(
+        b.fmt("{s}-{s}.dist-info", .{ name, version }),
+        .{},
+    );
 
     const wheel_name = b.fmt("{s}-{s}-{s}.whl", .{ name, version, tag });
     // TODO: We might want to be checking if python is available, and if we are in a virtual env maybe?
     // Using python to zip for now, since we know we will have it. Will bring in house at some point
     const zip_cmd = b.addSystemCommand(&.{ "python", "-m", "zipfile", "-c" });
+    zip_cmd.setName("zip final wheel contents");
     // QUES: Why does placing the outputFileArg _after_ addArgs result in nothing being generated?
     const zipped_wheel_output_file = zip_cmd.addOutputFileArg2(wheel_name, .{});
     zip_cmd.addFileArg2(lib_file, .{});

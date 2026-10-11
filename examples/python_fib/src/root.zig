@@ -33,5 +33,6 @@ pub fn sub(
 }
 
 test sub {
-    try std.testing.expectEqual(-4, sub(3, 7));
+    try std.testing.expectEqual(-3, sub(3, 6));
+    try std.testing.expectEqual(-6, sub(3, 9));
 }
