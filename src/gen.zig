@@ -1,6 +1,6 @@
 const std = @import("std");
 const Ast = std.zig.Ast;
-// NOTE: src is the users source code we are converting
+// This is the users source code we are converting
 const src = @import("src");
 // I think there is probably a better way to access this?
 const config = @import("config");
