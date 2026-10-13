@@ -40,6 +40,8 @@ fn pyFormat(comptime T: type) PyFormat {
         i64 => .{ .parse = "L", .build = "L", .python = "int" },
         f32 => .{ .parse = "f", .build = "f", .python = "int" },
         f64 => .{ .parse = "d", .build = "d", .python = "int" },
+        // TODO: Check the parse and build
+        void => .{ .parse = "d", .build = "d", .python = "None" },
         else => unreachable,
     };
 }
@@ -126,9 +128,15 @@ pub fn main(init: std.process.Init) !void {
             }
         } else switch (@typeInfo(field_type)) {
             .@"fn" => |f| {
-                functions[func_number].return_type = @typeName(f.return_type orelse unreachable);
-                functions[func_number].return_format = pyFormat(f.return_type orelse unreachable).build;
-                functions[func_number].return_python_type = pyFormat(f.return_type orelse unreachable).python;
+                if (f.return_type == null) {
+                    functions[func_number].return_type = @typeName(void);
+                    functions[func_number].return_format = pyFormat(void).build;
+                    functions[func_number].return_python_type = pyFormat(void).python;
+                } else {
+                    functions[func_number].return_type = @typeName(f.return_type orelse unreachable);
+                    functions[func_number].return_format = pyFormat(f.return_type orelse unreachable).build;
+                    functions[func_number].return_python_type = pyFormat(f.return_type orelse unreachable).python;
+                }
 
                 inline for (f.param_types, 0..) |p, i| {
                     if (p) |param_type| {
