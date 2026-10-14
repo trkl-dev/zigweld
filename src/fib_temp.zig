@@ -37,14 +37,8 @@ fn sub(self: [*c]Py.PyObject, args: [*c]Py.PyObject) callconv(.c) [*c]Py.PyObjec
 fn no_return(self: [*c]Py.PyObject, args: [*c]Py.PyObject) callconv(.c) [*c]Py.PyObject {
     _ = self;
     var a: i32 = undefined;
-    if (!(Py.PyArg_ParseTuple(
-        args,
-        "i",
-        &a,
-    ) != 0)) return null;
-    const response = core.no_return(
-        a,
-    );
+    if (!(Py.PyArg_ParseTuple(args, "i", &a) != 0)) return null;
+    const response = core.no_return(a);
     return Py.Py_BuildValue("d", @as(void, response));
 }
 var fibMethods = [_]Py.PyMethodDef{

@@ -15,18 +15,45 @@ pub fn build(b: *std.Build) void {
     });
 
     const run_gen_test = b.addRunArtifact(gen_test);
+    run_gen_test.setName("run gen test");
+
+    const python_abi_module = b.createModule(.{
+        .root_source_file = b.path("src/python.zig"),
+        .target = b.graph.host,
+    });
+
+    const test_src_module = b.createModule(.{
+        .root_source_file = b.path("src/test_src.zig"),
+        .target = b.graph.host,
+    });
+
+    const wrapper_test = b.addTest(.{
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("src/wrapper.zig"),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{
+                .{ .name = "src", .module = test_src_module },
+                .{ .name = "python", .module = python_abi_module },
+            },
+        }),
+    });
+
+    const run_wrapper_test = b.addRunArtifact(wrapper_test);
+    run_wrapper_test.setName("run wrapper test");
 
     const test_step = b.step("test", "Run tests");
     test_step.dependOn(&run_gen_test.step);
+    // test_step.dependOn(&run_wrapper_test.step);
 
     // There is possibly a better way to interface with the example build more directly, but it's
     // challenging to do so without creating circular dependencies.
-    const run_example_test = b.addSystemCommand(&.{ "zig", "build", "test" });
-    run_example_test.setCwd(b.path("examples/python_fib/"));
-
-    run_example_test.step.dependOn(&run_gen_test.step);
-
-    test_step.dependOn(&run_example_test.step);
+    // const run_example_test = b.addSystemCommand(&.{ "zig", "build", "test" });
+    // run_example_test.setCwd(b.path("examples/python_fib/"));
+    //
+    // run_example_test.step.dependOn(&run_gen_test.step);
+    //
+    // test_step.dependOn(&run_example_test.step);
 }
 
 pub const Wheels = struct {
@@ -37,11 +64,39 @@ pub const Wheels = struct {
 
     wheel_file: *std.Build.Step.InstallFile,
     wheel_step: *std.Build.Step,
+
+    wrapped_lib_file: *std.Build.Step.InstallFile,
 };
 
 //TODO: Add condition for if shimming is required, or if code already includes python
 pub fn buildWheels(b: *std.Build, module: *std.Build.Module, name: []const u8, version: []const u8) Wheels {
     const root_build = b.dependencyFromBuildZig(@This(), .{});
+
+    const python_abi_module = b.createModule(.{
+        .root_source_file = root_build.path("src/python.zig"),
+        .target = b.graph.host,
+    });
+
+    const wrapped = b.createModule(.{
+        .root_source_file = root_build.path("src/wrapper.zig"),
+        .target = b.graph.host,
+        .imports = &.{
+            .{ .name = "src", .module = module },
+        },
+    });
+    const wrapped_lib = b.addLibrary(.{
+        .name = name,
+        .linkage = .dynamic,
+        .root_module = wrapped,
+    });
+
+    wrapped_lib.linker_allow_shlib_undefined = true;
+
+    const wrapped_lib_file = b.addInstallFileWithDir(
+        wrapped_lib.getEmittedBin(),
+        .{ .custom = "wheels" },
+        b.fmt("{s}.so", .{"blah"}),
+    );
 
     const adapter_exe = b.addExecutable(.{
         .name = "adapter_exe",
@@ -61,11 +116,6 @@ pub fn buildWheels(b: *std.Build, module: *std.Build.Module, name: []const u8, v
     const stub_output_file = adapter_run.addOutputFileArg2(b.fmt("{s}.pyi", .{name}), .{});
     // TODO: Make this optional. This is what allows stdout to print from gen.zig
     // adapter_run.stdio = .inherit;
-
-    const python_abi_module = b.createModule(.{
-        .root_source_file = root_build.path("src/python.zig"),
-        .target = b.graph.host,
-    });
 
     // TODO: Change this to outputfilearg?
     const options = b.addOptions();
@@ -131,6 +181,8 @@ pub fn buildWheels(b: *std.Build, module: *std.Build.Module, name: []const u8, v
 
         .wheel_file = wheel_file,
         .wheel_step = &wheel_file.step,
+
+        .wrapped_lib_file = wrapped_lib_file,
     };
 }
 

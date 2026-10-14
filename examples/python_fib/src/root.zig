@@ -38,9 +38,9 @@ test sub {
 }
 
 // TODO: Also probably can't return an error? I think `extern` blocks this already
-pub fn no_return(a: i32) void {
-    _ = a;
-}
+// pub fn no_return(a: i32) void {
+//     _ = a;
+// }
 
 // TODO: Need to look at how to handle `init`, like for `main` functions. How do we properly handle IO here?
 // fn printSomething(thing_to_print: []const u8) !void {
