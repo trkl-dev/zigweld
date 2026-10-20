@@ -50,46 +50,65 @@ fn makeWrapped(comptime func: anytype) type {
     // var parse_format: [func_info.param_types.len]u8 = undefined;
 
     const parse_format = comptime blk: {
-        var fmt: [func_info.param_types.len]u8 = undefined;
+        var fmt: [func_info.param_types.len + 1]u8 = undefined;
         for (func_info.param_types, 0..) |param_type, i| {
             const python_format = getPythonFormat(param_type.?);
             std.debug.assert(python_format.parse.len == 1);
             fmt[i] = python_format.parse[0];
         }
+        fmt[func_info.param_types.len] = 0;
         break :blk fmt;
     };
 
     return struct {
         pub const p_format = parse_format;
-        pub const f_info = func_info;
+        const f_info = func_info;
         pub fn wrapped(self: [*c]Py.PyObject, args: [*c]Py.PyObject) callconv(.c) [*c]Py.PyObject {
             _ = self;
 
             // Build a tuple sized for the arg types for us to unpack into
-            const func_args: std.meta.ArgsTuple(@TypeOf(func)) = undefined;
+            var func_args: std.meta.ArgsTuple(@TypeOf(func)) = undefined;
+            // @compileLog(func_args);
 
             // Build a tuple for holding types?
-            var ptr_tuple: [f_info.param_types.len]type = undefined;
+            comptime var ptr_tuple: [f_info.param_types.len]type = undefined;
+            // @compileLog(ptr_tuple);
             inline for (f_info.param_types, 0..) |param_type, i| {
-                ptr_tuple[i] = *param_type.?;
+                ptr_tuple[i] = *param_type.?; // TODO: Handle anytype/generic better
             }
+            // @compileLog(ptr_tuple);
 
+            // NOTE: I dont think we can know this at comptime?
             var func_args_ptrs: @Tuple(&ptr_tuple) = undefined;
+
+            // @compileLog(func_args_ptrs);
             inline for (0..f_info.param_types.len) |i| {
                 func_args_ptrs[i] = &func_args[i];
             }
 
+            std.debug.print("func_args_ptrs: {}\n", .{func_args_ptrs});
+
+            // Unpack the args provided from the python-side, into zig values
+            std.debug.print("{s} {}, {}\n", .{
+                p_format,                                                  func_args,
+
+                .{ args, @as([*c]const u8, &p_format) } ++ func_args_ptrs,
+            });
+
             const unpack_response = @call(
                 .auto,
                 Py.PyArg_ParseTuple,
-                .{ args, @as([*c]const u8, p_format) } ++ func_args_ptrs,
+                .{ args, @as([*c]const u8, &p_format) } ++ func_args_ptrs,
             );
             if (unpack_response == 0) {
                 return null;
             }
 
+            std.debug.print("unpacked: {}\n", .{func_args});
+
+            // Pass zig values into function
             const response = @call(.auto, func, func_args);
-            return Py.Py_BuildValue("i", @as(u32, response));
+            return Py.Py_BuildValue("L", @as(f_info.return_type.?, response));
 
             // var foo: u32 = undefined;
             // var bar: u32 = undefined;

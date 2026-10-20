@@ -25,10 +25,10 @@ test add {
 /// Function to subtract two integers
 pub fn sub(
     /// The first number to sub
-    foo: i32,
+    foo: i16,
     /// The second number to sub
-    bar: i32,
-) i32 {
+    bar: i16,
+) i16 {
     return foo - bar;
 }
 

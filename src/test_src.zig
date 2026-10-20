@@ -11,10 +11,10 @@ pub const baz = struct {
 /// This doesn't show up
 pub fn add(
     /// The first number to add
-    foo: ?u32,
+    foo: ?i8,
     /// The second number to add
-    bar: u32,
-) ?u32 {
+    bar: i8,
+) ?i8 {
     if (foo == null) {
         return null;
     }
