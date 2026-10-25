@@ -11,13 +11,13 @@ pub const baz = struct {
 /// This doesn't show up
 pub fn add(
     /// The first number to add
-    foo: ?i8,
+    foo: u32,
     /// The second number to add
-    bar: i8,
-) ?i8 {
-    if (foo == null) {
-        return null;
-    }
+    bar: u32,
+) u32 {
+    // if (foo == null) {
+    //     return null;
+    // }
     return foo + bar;
 }
 
@@ -28,14 +28,28 @@ test add {
 /// Function to subtract two integers
 pub fn sub(
     /// The first number to sub
-    foo: u32,
+    foo: i32,
     /// The second number to sub
-    bar: u32,
-) u32 {
+    bar: i32,
+) i32 {
     return foo - bar;
 }
 
 test sub {
     try std.testing.expectEqual(-3, sub(3, 6));
     try std.testing.expectEqual(-6, sub(3, 9));
+}
+
+// Private function that should not be included in final binary as importable
+fn private(foo: i32) i32 {
+    return foo + 1;
+}
+
+// Public function that uses private function that should work AND be importable
+pub fn uses_private(bar: i32) i32 {
+    return private(bar) + 1;
+}
+
+pub fn echo(string_to_echo: [:0]u8) [:0]u8 {
+    return string_to_echo;
 }

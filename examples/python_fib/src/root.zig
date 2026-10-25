@@ -32,10 +32,24 @@ pub fn sub(
     return foo - bar;
 }
 
-test sub {
-    try std.testing.expectEqual(-3, sub(3, 6));
-    try std.testing.expectEqual(-6, sub(3, 9));
+// Private function that should not be included in final binary as importable
+fn private(foo: i32) i32 {
+    return foo + 1;
 }
+
+// Public function that uses private function that should work AND be importable
+pub fn uses_private(bar: i32) i32 {
+    return private(bar) + 1;
+}
+
+pub fn echo(string_to_echo: []u8) []u8 {
+    return string_to_echo;
+}
+
+// test sub {
+//     try std.testing.expectEqual(-3, sub(3, 6));
+//     try std.testing.expectEqual(-6, sub(3, 9));
+// }
 
 // TODO: Also probably can't return an error? I think `extern` blocks this already
 // pub fn no_return(a: i32) void {

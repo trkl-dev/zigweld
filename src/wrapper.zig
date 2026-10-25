@@ -1,31 +1,93 @@
 const std = @import("std");
-const Py = @import("python.zig");
+const Py = @import("python");
 
 // This is the users source code we are converting
 const src = @import("src");
 
+// Options passed in from build.zig
+const config = @import("config");
+
+const module_import_name = config.name;
+
+const FormatCType = struct {
+    format: []const u8,
+    type: type,
+};
+
 const PythonFormat = struct {
-    parse: []const u8,
-    build: []const u8,
+    parse: FormatCType,
+    build: FormatCType,
     python: []const u8,
 };
 
 // https://docs.python.org/3/c-api/arg.html
-fn getPythonFormat(comptime T: type) PythonFormat {
-    return switch (T) {
-        i16 => .{ .parse = "i", .build = "i", .python = "int" },
-        i32 => .{ .parse = "l", .build = "l", .python = "int" },
-        i64 => .{ .parse = "L", .build = "L", .python = "int" },
-
-        u16 => .{ .parse = "I", .build = "I", .python = "int" },
-        u32 => .{ .parse = "k", .build = "k", .python = "int" },
-        u64 => .{ .parse = "K", .build = "K", .python = "int" },
-
-        f32 => .{ .parse = "f", .build = "f", .python = "int" },
-        f64 => .{ .parse = "d", .build = "d", .python = "int" },
-
-        else => unreachable,
+fn getPythonParseFormat(comptime T: type) PythonFormat {
+    const format: PythonFormat = switch (@typeInfo(T)) {
+        .optional => @compileError("optional types are not supported"),
+        .pointer => |ptr| {
+            if (ptr.sentinel() == null) {
+                @compileError("only sentinel terminated is currently supported");
+            }
+            return switch (ptr.child) {
+                u8 => .{
+                    .parse = .{ .format = "h", .type = c_short },
+                    .build = .{ .format = "h", .type = c_short },
+                    .python = "int",
+                },
+                else => @compileError("pointer to " ++ @typeName(ptr.child) ++ " not supported"),
+            };
+        },
+        // NOTE: parse and build formats are not always the same, although often they are. Hence the distinct entries.
+        else => switch (T) {
+            i16 => .{
+                .parse = .{ .format = "h", .type = c_short },
+                .build = .{ .format = "h", .type = c_short },
+                .python = "int",
+            },
+            i32 => .{
+                .parse = .{ .format = "i", .type = c_int },
+                .build = .{ .format = "i", .type = c_int },
+                .python = "int",
+            },
+            i64 => .{
+                .parse = .{ .format = "L", .type = c_longlong },
+                .build = .{ .format = "L", .type = c_longlong },
+                .python = "int",
+            },
+            u16 => .{
+                .parse = .{ .format = "H", .type = c_ushort },
+                .build = .{ .format = "H", .type = c_ushort },
+                .python = "int",
+            },
+            u32 => .{
+                .parse = .{ .format = "I", .type = c_uint },
+                .build = .{ .format = "I", .type = c_uint },
+                .python = "int",
+            },
+            u64 => .{
+                .parse = .{ .format = "K", .type = c_ulonglong },
+                .build = .{ .format = "K", .type = c_ulonglong },
+                .python = "int",
+            },
+            // Zig floats are perfectly compatible with C floats, so we don't need a c-type for checking
+            f32 => .{
+                .parse = .{ .format = "f", .type = f32 },
+                .build = .{ .format = "f", .type = f32 },
+                .python = "float",
+            },
+            f64 => .{
+                .parse = .{ .format = "d", .type = f64 },
+                .build = .{ .format = "d", .type = f64 },
+                .python = "float",
+            },
+            else => @compileError(@typeName(T) ++ " not supported"),
+        },
     };
+    comptime {
+        std.debug.assert(@sizeOf(T) == @sizeOf(format.parse.type));
+        std.debug.assert(@sizeOf(T) == @sizeOf(format.build.type));
+    }
+    return format;
 }
 
 fn makeWrapped(comptime func: anytype) type {
@@ -35,8 +97,14 @@ fn makeWrapped(comptime func: anytype) type {
     std.debug.assert(func_type_info == .@"fn");
     const func_info = func_type_info.@"fn";
 
-    // For now, not handling/supporting anytype/generics
-    std.debug.assert(!func_info.is_generic);
+    if (func_info.is_generic) {
+        @compileError("generic functions are not supported");
+    }
+    if (func_info.return_type != null) {
+        if (@typeInfo(func_info.return_type.?) == .optional) {
+            @compileError("optional return types are not supported");
+        }
+    }
 
     // Need to go through the inputs, and arrange them like python, with the format units.
     // def foo(a: int, b: str, c: int | None = None, d: str | None = None)
@@ -50,11 +118,12 @@ fn makeWrapped(comptime func: anytype) type {
     // var parse_format: [func_info.param_types.len]u8 = undefined;
 
     const parse_format = comptime blk: {
-        var fmt: [func_info.param_types.len + 1]u8 = undefined;
+        var fmt: [func_info.param_types.len:0]u8 = undefined;
         for (func_info.param_types, 0..) |param_type, i| {
-            const python_format = getPythonFormat(param_type.?);
-            std.debug.assert(python_format.parse.len == 1);
-            fmt[i] = python_format.parse[0];
+            // @compileLog(param_type.?);
+            const python_format = getPythonParseFormat(param_type.?);
+            std.debug.assert(python_format.parse.format.len == 1);
+            fmt[i] = python_format.parse.format[0];
         }
         fmt[func_info.param_types.len] = 0;
         break :blk fmt;
@@ -66,13 +135,27 @@ fn makeWrapped(comptime func: anytype) type {
         pub fn wrapped(self: [*c]Py.PyObject, args: [*c]Py.PyObject) callconv(.c) [*c]Py.PyObject {
             _ = self;
 
-            // Build a tuple sized for the arg types for us to unpack into
-            var func_args: std.meta.ArgsTuple(@TypeOf(func)) = undefined;
-            // @compileLog(func_args);
+            // Build a tuple for the function args to be unpacked into
+            // var func_args: std.meta.ArgsTuple(@TypeOf(func)) = undefined;
+
+            const info = @typeInfo(@TypeOf(func));
+            if (info != .@"fn")
+                @compileError("ArgsTuple expects a function type");
+
+            const function_info = info.@"fn";
+            if (function_info.attrs.varargs)
+                @compileError("Cannot create ArgsTuple for variadic function");
+
+            comptime var argument_field_list: [function_info.param_types.len]type = undefined;
+            inline for (function_info.param_types, 0..) |arg_type, i| {
+                const T = arg_type orelse @compileError("cannot create ArgsTuple for function with an 'anytype' parameter");
+                argument_field_list[i] = T;
+            }
+
+            var func_args: @Tuple(&argument_field_list) = undefined;
 
             // Build a tuple for holding types?
             comptime var ptr_tuple: [f_info.param_types.len]type = undefined;
-            // @compileLog(ptr_tuple);
             inline for (f_info.param_types, 0..) |param_type, i| {
                 ptr_tuple[i] = *param_type.?; // TODO: Handle anytype/generic better
             }
@@ -108,13 +191,13 @@ fn makeWrapped(comptime func: anytype) type {
 
             // Pass zig values into function
             const response = @call(.auto, func, func_args);
-            return Py.Py_BuildValue("L", @as(f_info.return_type.?, response));
+            if (f_info.return_type == null) {
+                @compileError("generic functions are not supported");
+            }
 
-            // var foo: u32 = undefined;
-            // var bar: u32 = undefined;
-            // if (!(Py.PyArg_ParseTuple(args, final_format, &foo, &bar) != 0)) return null;
-            // const response = @call(.auto, func, .{ foo, bar });
-            // return Py.Py_BuildValue("i", @as(u32, response));
+            const response_format = getPythonParseFormat(f_info.return_type.?);
+
+            return Py.Py_BuildValue(@as([*c]const u8, &response_format.build.format[0]), response);
         }
     };
 }
@@ -130,8 +213,7 @@ var methods = blk: {
         const field_type: type = @TypeOf(field);
         const field_type_info: std.lang.Type = @typeInfo(field_type);
         switch (field_type_info) {
-            .@"fn" => |func| {
-                if (func.is_generic) {}
+            .@"fn" => {
                 num_methods += 1;
             },
             else => {
@@ -140,7 +222,6 @@ var methods = blk: {
         }
     }
 
-    // Populate the
     var methods_temp: [num_methods + 1]Py.PyMethodDef = undefined;
     var func_number = 0;
     for (src_type_info.@"struct".decl_names) |decl_name| {
@@ -195,7 +276,7 @@ var module = Py.PyModuleDef{
 };
 
 comptime {
-    @export(&internal, .{ .name = "PyInit_blah", .linkage = .strong });
+    @export(&internal, .{ .name = "PyInit_" ++ module_import_name, .linkage = .strong });
 }
 pub fn internal() callconv(.c) [*]Py.PyObject {
     return Py.PyModule_Create(&module);
