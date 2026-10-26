@@ -145,16 +145,20 @@ fn makeWrapped(comptime func: anytype) type {
 
         var fmt: [format_length:0]u8 = undefined;
         var args: [args_length]type = undefined;
+        var arg_idx = 0;
         for (func_info.param_types, 0..) |param_type, i| {
             const python_format = getPythonParseFormat(param_type.?);
             for (python_format.parse.format, 0..) |char, ii| {
                 fmt[i + ii] = char;
             }
 
-            for (python_format.args, 0..) |t, ii| {
-                args[i + ii] = t;
+            for (python_format.args) |t| {
+                // @compileLog(i, ii, t);
+                args[arg_idx] = t;
+                arg_idx += 1;
             }
         }
+        // @compileLog(args);
         break :blk .{ fmt, args };
     };
 
@@ -162,14 +166,33 @@ fn makeWrapped(comptime func: anytype) type {
         pub const p_format = parse_format;
         pub const f_info = func_info;
         pub const p_args = parse_args;
+
         pub fn wrapped(self: [*c]Py.PyObject, args: [*c]Py.PyObject) callconv(.c) [*c]Py.PyObject {
             _ = self;
 
+            var incoming_param_args: @Tuple(&p_args) = undefined;
+
+            comptime var incoming_ptr_tuple: [p_args.len]type = undefined;
+            inline for (p_args, 0..) |arg_type, i| {
+                incoming_ptr_tuple[i] = *arg_type; // NOTE: I think this is a bit redundant
+            }
+
+            var incoming_func_args_ptrs: @Tuple(&incoming_ptr_tuple) = undefined;
+            inline for (0..p_args.len) |i| {
+                incoming_func_args_ptrs[i] = &incoming_param_args[i];
+            }
+
+            const unpack_response = @call(
+                .auto,
+                Py.PyArg_ParseTuple,
+                .{ args, @as([*c]const u8, &p_format) } ++ incoming_func_args_ptrs,
+            );
+            if (unpack_response == 0) {
+                return null;
+            }
+
             // Build a tuple for the function args to be unpacked into
             var func_args: std.meta.ArgsTuple(@TypeOf(func)) = undefined;
-
-            const blah = @Tuple(&p_args);
-            _ = blah;
 
             // Build a tuple for holding types?
             comptime var ptr_tuple: [f_info.param_types.len]type = undefined;
@@ -182,22 +205,54 @@ fn makeWrapped(comptime func: anytype) type {
                 func_args_ptrs[i] = &func_args[i];
             }
 
-            const unpack_response = @call(
-                .auto,
-                Py.PyArg_ParseTuple,
-                .{ args, @as([*c]const u8, &p_format) } ++ func_args_ptrs,
-            );
-            if (unpack_response == 0) {
-                return null;
+            comptime var incoming_idx = 0;
+            comptime var func_params_idx = 0;
+            inline while (incoming_idx < incoming_param_args.len) {
+                if (@TypeOf(incoming_param_args[incoming_idx]) == @TypeOf(func_args[func_params_idx])) {
+                    func_args_ptrs[func_params_idx].* = incoming_param_args[incoming_idx];
+                    incoming_idx += 1;
+                    func_params_idx += 1;
+                } else {
+                    if (@TypeOf(incoming_param_args[incoming_idx]) == u8 and @TypeOf(incoming_param_args[incoming_idx + 1]) == isize) {
+                        const ptr: *u8 = &incoming_param_args[incoming_idx];
+                        const many_ptr: [*]u8 = @ptrCast(ptr); // QUES: Is this correct?
+                        const length = incoming_param_args[incoming_idx + 1];
+                        if (length < 0) {
+                            @panic("invalid length");
+                        }
+
+                        const slice: []u8 = many_ptr[0..@intCast(length)];
+                        func_args_ptrs[func_params_idx].* = slice;
+                        incoming_idx += 2;
+                        func_params_idx += 1;
+                    } else unreachable;
+                }
             }
+            // @compileLog(func_args);
 
             const response = @call(.auto, func, func_args);
             if (f_info.return_type == null) {
                 @compileError("generic functions are not supported");
             }
+            std.debug.print("response: {any}\n", .{response});
+
+            // @compileLog("response");
+            // @compileLog(response);
 
             const response_format = getPythonParseFormat(f_info.return_type.?);
 
+            const response_type = @typeInfo(f_info.return_type.?);
+            switch (response_type) {
+                .pointer => |ptr| {
+                    std.debug.print("response: {s}\n", .{response});
+                    if (ptr.size != .slice) unreachable;
+                    if (ptr.child != u8) unreachable;
+                    const p: [*]const u8 = @ptrCast(&response[0]);
+                    const length: isize = @intCast(response.len);
+                    return Py.Py_BuildValue(@as([*c]const u8, &response_format.build.format[0]), p, length);
+                },
+                else => {},
+            }
             return Py.Py_BuildValue(@as([*c]const u8, &response_format.build.format[0]), response);
         }
     };

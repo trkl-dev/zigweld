@@ -21,6 +21,12 @@ class TestStringMethods(unittest.TestCase):
         self.assertEqual(uses_private(10), 12)
 
     def test_echo(self):
+        self.assertEqual(echo(None), "hi there")
+
+    def test_echo_1(self):
+        self.assertEqual(echo("hi there"), "hi there")
+
+    def test_echo_2(self):
         self.assertEqual(echo("hi there\n"), "hi there\n")
 
 

@@ -50,7 +50,7 @@ pub fn uses_private(bar: i32) i32 {
     return private(bar) + 1;
 }
 
-pub fn echo(bar: u16, string_to_echo: []u8, foo: i32) []u8 {
+pub fn echo(bar: u16, string_to_echo: []const u8, foo: i32) []const u8 {
     _ = foo;
     _ = bar;
     return string_to_echo;
