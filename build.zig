@@ -47,6 +47,13 @@ pub fn build(b: *std.Build) void {
         .root_module = test_src_module,
     });
 
+    const test_utils = b.addTest(.{
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("src/utils.zig"),
+            .target = b.graph.host,
+        }),
+    });
+
     // const wrapper_test = b.addTest(.{
     //     .root_module = wrapped_mod,
     // });
@@ -54,10 +61,13 @@ pub fn build(b: *std.Build) void {
     // wrapper_test.root_module.link_libc = true;
     // wrapper_test.root_module.linkSystemLibrary("python.h", .{});
 
-    const run_unit_tests = b.addRunArtifact(@"test");
+    const run_test_src_tests = b.addRunArtifact(@"test");
+    run_test_src_tests.setName("run test src module unit tests");
+    const run_utils_tests = b.addRunArtifact(test_utils);
+    run_utils_tests.setName("run utils module unit tests");
     // const run_unit_tests = b.addRunArtifact(wrapper_test);
-    run_unit_tests.setName("run src module unit tests");
-    test_step.dependOn(&run_unit_tests.step);
+    test_step.dependOn(&run_test_src_tests.step);
+    test_step.dependOn(&run_utils_tests.step);
 
     // test_step.dependOn(&run_wrapper_test.step);
 
@@ -66,7 +76,7 @@ pub fn build(b: *std.Build) void {
     const run_example_test = b.addSystemCommand(&.{ "zig", "build", "test" });
     run_example_test.setCwd(b.path("examples/python_fib/"));
 
-    run_example_test.step.dependOn(&run_unit_tests.step);
+    run_example_test.step.dependOn(&run_test_src_tests.step);
 
     test_examples_step.dependOn(&run_example_test.step);
 }

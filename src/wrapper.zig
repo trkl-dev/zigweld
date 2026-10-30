@@ -1,5 +1,6 @@
 const std = @import("std");
 const Py = @import("python");
+const utils = @import("utils.zig");
 
 // This is the users source code we are converting
 const src = @import("src");
@@ -8,103 +9,6 @@ const src = @import("src");
 const config = @import("config");
 
 const module_import_name = config.name;
-
-fn assert(comptime ok: bool) void {
-    if (!ok) {
-        @compileError("assertion failed");
-    }
-}
-
-const FormatCType = struct {
-    format: []const u8,
-    type: type,
-};
-
-const PythonFormat = struct {
-    args: []const type,
-    parse: FormatCType,
-    build: FormatCType,
-    python: []const u8,
-};
-
-// https://docs.python.org/3/c-api/arg.html
-fn getPythonParseFormat(comptime T: type) PythonFormat {
-    const format: PythonFormat = switch (@typeInfo(T)) {
-        .optional => @compileError("optional types are not supported"),
-        .pointer => |ptr| {
-            if (ptr.sentinel() != null) {
-                @compileError("sentinel terminated slices are not currently supported");
-            }
-            return switch (ptr.child) {
-                u8 => .{
-                    .args = &.{ u8, isize },
-                    .parse = .{ .format = "s#", .type = c_short },
-                    .build = .{ .format = "s#", .type = c_short },
-                    .python = "str",
-                },
-                else => @compileError("pointer to " ++ @typeName(ptr.child) ++ " not supported"),
-            };
-        },
-        // NOTE: parse and build formats are not always the same, although often they are. Hence the distinct entries.
-        else => switch (T) {
-            i16 => .{
-                .args = &.{i16},
-                .parse = .{ .format = "h", .type = c_short },
-                .build = .{ .format = "h", .type = c_short },
-                .python = "int",
-            },
-            i32 => .{
-                .args = &.{i32},
-                .parse = .{ .format = "i", .type = c_int },
-                .build = .{ .format = "i", .type = c_int },
-                .python = "int",
-            },
-            i64 => .{
-                .args = &.{i64},
-                .parse = .{ .format = "L", .type = c_longlong },
-                .build = .{ .format = "L", .type = c_longlong },
-                .python = "int",
-            },
-            u16 => .{
-                .args = &.{u16},
-                .parse = .{ .format = "H", .type = c_ushort },
-                .build = .{ .format = "H", .type = c_ushort },
-                .python = "int",
-            },
-            u32 => .{
-                .args = &.{u32},
-                .parse = .{ .format = "I", .type = c_uint },
-                .build = .{ .format = "I", .type = c_uint },
-                .python = "int",
-            },
-            u64 => .{
-                .args = &.{u64},
-                .parse = .{ .format = "K", .type = c_ulonglong },
-                .build = .{ .format = "K", .type = c_ulonglong },
-                .python = "int",
-            },
-            // Zig floats are perfectly compatible with C floats, so we don't need a c-type for checking
-            f32 => .{
-                .args = &.{f32},
-                .parse = .{ .format = "f", .type = f32 },
-                .build = .{ .format = "f", .type = f32 },
-                .python = "float",
-            },
-            f64 => .{
-                .args = &.{f64},
-                .parse = .{ .format = "d", .type = f64 },
-                .build = .{ .format = "d", .type = f64 },
-                .python = "float",
-            },
-            else => @compileError(@typeName(T) ++ " not supported"),
-        },
-    };
-    comptime {
-        assert(@sizeOf(T) == @sizeOf(format.parse.type));
-        assert(@sizeOf(T) == @sizeOf(format.build.type));
-    }
-    return format;
-}
 
 fn makeWrapped(comptime func: anytype) type {
     const func_type = @TypeOf(func);
@@ -138,7 +42,7 @@ fn makeWrapped(comptime func: anytype) type {
         var format_length = 0;
         var args_length = 0;
         for (func_info.param_types) |param_type| {
-            const python_format = getPythonParseFormat(param_type.?);
+            const python_format = utils.getPythonParseFormat(param_type.?);
             format_length += python_format.parse.format.len;
             args_length += python_format.args.len;
         }
@@ -147,7 +51,7 @@ fn makeWrapped(comptime func: anytype) type {
         var args: [args_length]type = undefined;
         var arg_idx = 0;
         for (func_info.param_types, 0..) |param_type, i| {
-            const python_format = getPythonParseFormat(param_type.?);
+            const python_format = utils.getPythonParseFormat(param_type.?);
             for (python_format.parse.format, 0..) |char, ii| {
                 fmt[i + ii] = char;
             }
@@ -163,97 +67,124 @@ fn makeWrapped(comptime func: anytype) type {
     };
 
     return struct {
-        pub const p_format = parse_format;
+        pub const p_format = parse_format; // TODO: Remove
         pub const f_info = func_info;
-        pub const p_args = parse_args;
+        pub const p_args = parse_args; // TODO: Remove
 
         pub fn wrapped(self: [*c]Py.PyObject, args: [*c]Py.PyObject) callconv(.c) [*c]Py.PyObject {
             _ = self;
 
-            var incoming_param_args: @Tuple(&p_args) = undefined;
+            const py_params_type, const params_format, _ = utils.ExpandTypes(func);
+            const py_params: py_params_type = undefined;
 
-            comptime var incoming_ptr_tuple: [p_args.len]type = undefined;
-            inline for (p_args, 0..) |arg_type, i| {
-                incoming_ptr_tuple[i] = *arg_type; // NOTE: I think this is a bit redundant
+            comptime var params_ptr_array: [py_params.len]type = undefined;
+            inline for (py_params, 0..) |arg_type, i| {
+                params_ptr_array[i] = *arg_type; // NOTE: I think this is a bit redundant
             }
 
-            var incoming_func_args_ptrs: @Tuple(&incoming_ptr_tuple) = undefined;
+            var params_ptr_tuple: @Tuple(&params_ptr_array) = undefined;
             inline for (0..p_args.len) |i| {
-                incoming_func_args_ptrs[i] = &incoming_param_args[i];
+                params_ptr_tuple[i] = &params_ptr_array[i];
             }
 
-            const unpack_response = @call(
+            const parse_params_response = @call(
                 .auto,
                 Py.PyArg_ParseTuple,
-                .{ args, @as([*c]const u8, &p_format) } ++ incoming_func_args_ptrs,
+                .{ args, @as([*c]const u8, &params_format) } ++ params_ptr_tuple,
             );
-            if (unpack_response == 0) {
+            if (parse_params_response == 0) {
                 return null;
             }
 
-            // Build a tuple for the function args to be unpacked into
-            var func_args: std.meta.ArgsTuple(@TypeOf(func)) = undefined;
+            const zig_params_type = std.meta.ArgsTuple(func);
+            const zig_params: zig_params_type = undefined;
 
-            // Build a tuple for holding types?
-            comptime var ptr_tuple: [f_info.param_types.len]type = undefined;
-            inline for (f_info.param_types, 0..) |param_type, i| {
-                ptr_tuple[i] = *param_type.?;
-            }
+            // Convert py_params -> zig_params
 
-            var func_args_ptrs: @Tuple(&ptr_tuple) = undefined;
-            inline for (0..f_info.param_types.len) |i| {
-                func_args_ptrs[i] = &func_args[i];
-            }
-
-            comptime var incoming_idx = 0;
-            comptime var func_params_idx = 0;
-            inline while (incoming_idx < incoming_param_args.len) {
-                if (@TypeOf(incoming_param_args[incoming_idx]) == @TypeOf(func_args[func_params_idx])) {
-                    func_args_ptrs[func_params_idx].* = incoming_param_args[incoming_idx];
-                    incoming_idx += 1;
-                    func_params_idx += 1;
-                } else {
-                    if (@TypeOf(incoming_param_args[incoming_idx]) == u8 and @TypeOf(incoming_param_args[incoming_idx + 1]) == isize) {
-                        const ptr: *u8 = &incoming_param_args[incoming_idx];
-                        const many_ptr: [*]u8 = @ptrCast(ptr); // QUES: Is this correct?
-                        const length = incoming_param_args[incoming_idx + 1];
-                        if (length < 0) {
-                            @panic("invalid length");
-                        }
-
-                        const slice: []u8 = many_ptr[0..@intCast(length)];
-                        func_args_ptrs[func_params_idx].* = slice;
-                        incoming_idx += 2;
-                        func_params_idx += 1;
-                    } else unreachable;
+            var param_idx = 0;
+            for (zig_params) |_| {
+                if (py_params_type[param_idx] == zig_params_type[param_idx]) {
+                    zig_params[param_idx] = py_params[param_idx];
+                    param_idx += 1;
+                    continue;
                 }
-            }
-            // @compileLog(func_args);
 
-            const response = @call(.auto, func, func_args);
+                if (py_params_type
+            }
+
+            const response = @call(.auto, func, zig_params);
             if (f_info.return_type == null) {
                 @compileError("generic functions are not supported");
             }
-            std.debug.print("response: {any}\n", .{response});
 
-            // @compileLog("response");
-            // @compileLog(response);
+            const return_type, _, const build_format = utils.ExpandTypes(@Tuple(&.{f_info.return_type.?})); // NOTE: I think this will be hairy, for complex types
+            const return_value: return_type = undefined;
 
-            const response_format = getPythonParseFormat(f_info.return_type.?);
+            return Py.Py_BuildValue(@as([*c]const u8, &build_format), parse_params_response);
 
-            const response_type = @typeInfo(f_info.return_type.?);
-            switch (response_type) {
-                .pointer => |ptr| {
-                    std.debug.print("response: {s}\n", .{response});
-                    if (ptr.size != .slice) unreachable;
-                    if (ptr.child != u8) unreachable;
-                    const p: [*]const u8 = @ptrCast(&response[0]);
-                    const length: isize = @intCast(response.len);
-                    return Py.Py_BuildValue(@as([*c]const u8, &response_format.build.format[0]), p, length);
-                },
-                else => {},
-            }
-            return Py.Py_BuildValue(@as([*c]const u8, &response_format.build.format[0]), response);
+            // // Build a tuple for the function args to be unpacked into
+            // var func_args: std.meta.ArgsTuple(@TypeOf(func)) = undefined;
+            //
+            // // Build a tuple for holding types?
+            // comptime var ptr_tuple: [f_info.param_types.len]type = undefined;
+            // inline for (f_info.param_types, 0..) |param_type, i| {
+            //     ptr_tuple[i] = *param_type.?;
+            // }
+            //
+            // var func_args_ptrs: @Tuple(&ptr_tuple) = undefined;
+            // inline for (0..f_info.param_types.len) |i| {
+            //     func_args_ptrs[i] = &func_args[i];
+            // }
+            //
+            // comptime var incoming_idx = 0;
+            // comptime var func_params_idx = 0;
+            // inline while (incoming_idx < incoming_param_args.len) {
+            //     if (@TypeOf(incoming_param_args[incoming_idx]) == @TypeOf(func_args[func_params_idx])) {
+            //         func_args_ptrs[func_params_idx].* = incoming_param_args[incoming_idx];
+            //         incoming_idx += 1;
+            //         func_params_idx += 1;
+            //     } else {
+            //         if (@TypeOf(incoming_param_args[incoming_idx]) == u8 and @TypeOf(incoming_param_args[incoming_idx + 1]) == isize) {
+            //             const ptr: *u8 = &incoming_param_args[incoming_idx];
+            //             const many_ptr: [*]u8 = @ptrCast(ptr); // QUES: Is this correct?
+            //             const length = incoming_param_args[incoming_idx + 1];
+            //             if (length < 0) {
+            //                 @panic("invalid length");
+            //             }
+            //
+            //             const slice: []u8 = many_ptr[0..@intCast(length)];
+            //             func_args_ptrs[func_params_idx].* = slice;
+            //             incoming_idx += 2;
+            //             func_params_idx += 1;
+            //         } else unreachable;
+            //     }
+            // }
+            // // @compileLog(func_args);
+            //
+            // const response = @call(.auto, func, func_args);
+            // if (f_info.return_type == null) {
+            //     @compileError("generic functions are not supported");
+            // }
+            // std.debug.print("response: {any}\n", .{parse_params_response});
+            //
+            // // @compileLog("response");
+            // // @compileLog(response);
+            //
+            // const response_format = utils.getPythonParseFormat(f_info.return_type.?);
+            //
+            // const response_type = @typeInfo(f_info.return_type.?);
+            // switch (response_type) {
+            //     .pointer => |ptr| {
+            //         std.debug.print("response: {s}\n", .{parse_params_response});
+            //         if (ptr.size != .slice) unreachable;
+            //         if (ptr.child != u8) unreachable;
+            //         const p: [*]const u8 = @ptrCast(&parse_params_response[0]);
+            //         const length: isize = @intCast(parse_params_response.len);
+            //         return Py.Py_BuildValue(@as([*c]const u8, &response_format.build.format[0]), p, length);
+            //     },
+            //     else => {},
+            // }
+            // return Py.Py_BuildValue(@as([*c]const u8, &response_format.build.format[0]), parse_params_response);
         }
     };
 }
@@ -337,3 +268,8 @@ comptime {
 pub fn internal() callconv(.c) [*]Py.PyObject {
     return Py.PyModule_Create(&module);
 }
+
+const TypeMap = struct {
+    zig_side: type,
+    py_side: []const type,
+};

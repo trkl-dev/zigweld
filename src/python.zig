@@ -3588,13 +3588,13 @@ pub fn Py_SIZE(arg_ob: [*c]PyObject) callconv(.c) Py_ssize_t {
     _ = @sizeOf(@TypeOf(if (_Py_TYPE(ob) != (&PyLong_Type)) @as(c_int, 1) else @as(c_int, 0)));
     {
         if (_Py_TYPE(ob) != (&PyLong_Type)) {} else {
-            __assert_fail("Py_TYPE(ob) != &PyLong_Type", "/nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/object.h", 284, @ptrCast(@alignCast(&static_local___PRETTY_FUNCTION__.__PRETTY_FUNCTION__)));
+            __assert_fail("Py_TYPE(ob) != &PyLong_Type", "/nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/object.h", 284, @ptrCast(@alignCast(&static_local___PRETTY_FUNCTION__.__PRETTY_FUNCTION__)));
         }
     }
     _ = @sizeOf(@TypeOf(if (_Py_TYPE(ob) != (&PyBool_Type)) @as(c_int, 1) else @as(c_int, 0)));
     {
         if (_Py_TYPE(ob) != (&PyBool_Type)) {} else {
-            __assert_fail("Py_TYPE(ob) != &PyBool_Type", "/nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/object.h", 285, @ptrCast(@alignCast(&static_local___PRETTY_FUNCTION__.__PRETTY_FUNCTION__)));
+            __assert_fail("Py_TYPE(ob) != &PyBool_Type", "/nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/object.h", 285, @ptrCast(@alignCast(&static_local___PRETTY_FUNCTION__.__PRETTY_FUNCTION__)));
         }
     }
     return @as([*c]PyVarObject, @ptrCast(@alignCast(ob))).*.ob_size;
@@ -3625,13 +3625,13 @@ pub fn Py_SET_SIZE(arg_ob: [*c]PyVarObject, arg_size: Py_ssize_t) callconv(.c) v
     _ = @sizeOf(@TypeOf(if (_Py_TYPE(@as([*c]PyObject, @ptrCast(@alignCast(ob)))) != (&PyLong_Type)) @as(c_int, 1) else @as(c_int, 0)));
     {
         if (_Py_TYPE(@as([*c]PyObject, @ptrCast(@alignCast(ob)))) != (&PyLong_Type)) {} else {
-            __assert_fail("Py_TYPE(_PyObject_CAST(ob)) != &PyLong_Type", "/nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/object.h", 308, @ptrCast(@alignCast(&static_local___PRETTY_FUNCTION__.__PRETTY_FUNCTION__)));
+            __assert_fail("Py_TYPE(_PyObject_CAST(ob)) != &PyLong_Type", "/nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/object.h", 308, @ptrCast(@alignCast(&static_local___PRETTY_FUNCTION__.__PRETTY_FUNCTION__)));
         }
     }
     _ = @sizeOf(@TypeOf(if (_Py_TYPE(@as([*c]PyObject, @ptrCast(@alignCast(ob)))) != (&PyBool_Type)) @as(c_int, 1) else @as(c_int, 0)));
     {
         if (_Py_TYPE(@as([*c]PyObject, @ptrCast(@alignCast(ob)))) != (&PyBool_Type)) {} else {
-            __assert_fail("Py_TYPE(_PyObject_CAST(ob)) != &PyBool_Type", "/nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/object.h", 309, @ptrCast(@alignCast(&static_local___PRETTY_FUNCTION__.__PRETTY_FUNCTION__)));
+            __assert_fail("Py_TYPE(_PyObject_CAST(ob)) != &PyBool_Type", "/nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/object.h", 309, @ptrCast(@alignCast(&static_local___PRETTY_FUNCTION__.__PRETTY_FUNCTION__)));
         }
     }
     ob.*.ob_size = size;
@@ -3784,7 +3784,7 @@ pub fn Py_SET_REFCNT(arg_ob: [*c]PyObject, arg_refcnt: Py_ssize_t) callconv(.c) 
     _ = @sizeOf(@TypeOf(if (refcnt >= @as(Py_ssize_t, 0)) @as(c_int, 1) else @as(c_int, 0)));
     {
         if (refcnt >= @as(Py_ssize_t, 0)) {} else {
-            __assert_fail("refcnt >= 0", "/nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/refcount.h", 153, @ptrCast(@alignCast(&static_local___PRETTY_FUNCTION__.__PRETTY_FUNCTION__)));
+            __assert_fail("refcnt >= 0", "/nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/refcount.h", 153, @ptrCast(@alignCast(&static_local___PRETTY_FUNCTION__.__PRETTY_FUNCTION__)));
         }
     }
     if (_Py_IsImmortal(ob) != 0) {
@@ -5216,6 +5216,7 @@ pub const __pic__ = @as(c_int, 2);
 pub const __PIC__ = @as(c_int, 2);
 pub const __GLIBC_MINOR__ = @as(c_int, 42);
 pub const Py_LIMITED_API = __helpers.promoteIntLiteral(c_int, 0x030B0000, .hex);
+pub const PY_SSIZE_T_CLEAN = "";
 pub const Py_PYTHON_H = "";
 pub const _Py_PATCHLEVEL_H = "";
 pub const PY_RELEASE_LEVEL_ALPHA = @as(c_int, 0xA);
@@ -7664,11 +7665,11 @@ pub inline fn _Py__has_builtin(x: anytype) @TypeOf(__builtin.has_builtin(x)) {
     return __builtin.has_builtin(x);
 }
 pub const _Py__has_attribute = @compileError("unable to translate macro: undefined identifier `__has_attribute`");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/pyport.h:25:11
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/pyport.h:25:11
 pub const _Py_STATIC_CAST = __helpers.CAST_OR_CALL;
 pub const _Py_CAST = __helpers.CAST_OR_CALL;
 pub const _Py_FUNC_CAST = @compileError("unable to translate C expr: unexpected token ')'");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/pyport.h:47:9
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/pyport.h:47:9
 pub const _Py_NULL = NULL;
 pub const HAVE_LONG_LONG = @as(c_int, 1);
 pub const PY_LONG_LONG = c_longlong;
@@ -7687,9 +7688,9 @@ pub const SIZEOF_PY_UHASH_T = SIZEOF_SIZE_T;
 pub const PY_SIZE_MAX = SIZE_MAX;
 pub const PY_FORMAT_SIZE_T = "z";
 pub const Py_LOCAL = @compileError("unable to translate C expr: unexpected token 'static'");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/pyport.h:208:11
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/pyport.h:208:11
 pub const Py_LOCAL_INLINE = @compileError("unable to translate C expr: unexpected token 'static'");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/pyport.h:209:11
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/pyport.h:209:11
 pub inline fn Py_ARITHMETIC_RIGHT_SHIFT(TYPE: anytype, I: anytype, J: anytype) @TypeOf(I >> J) {
     _ = &TYPE;
     _ = &I;
@@ -7707,44 +7708,44 @@ pub inline fn Py_SAFE_DOWNCAST(VALUE: anytype, WIDE: anytype, NARROW: anytype) @
     return _Py_STATIC_CAST(NARROW, VALUE);
 }
 pub const Py_DEPRECATED = @compileError("unable to translate macro: undefined identifier `__deprecated__`");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/pyport.h:281:9
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/pyport.h:281:9
 pub inline fn _Py_DEPRECATED_EXTERNALLY(version: anytype) @TypeOf(Py_DEPRECATED(version)) {
     _ = &version;
     return Py_DEPRECATED(version);
 }
 pub const _Py_COMP_DIAG_PUSH = @compileError("unable to translate macro: undefined identifier `_Pragma`");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/pyport.h:305:9
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/pyport.h:305:9
 pub const _Py_COMP_DIAG_IGNORE_DEPR_DECLS = @compileError("unable to translate macro: undefined identifier `_Pragma`");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/pyport.h:306:9
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/pyport.h:306:9
 pub const _Py_COMP_DIAG_POP = @compileError("unable to translate macro: undefined identifier `_Pragma`");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/pyport.h:308:9
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/pyport.h:308:9
 pub const _Py_HOT_FUNCTION = @compileError("unable to translate macro: undefined identifier `hot`");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/pyport.h:336:9
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/pyport.h:336:9
 pub const Py_ALWAYS_INLINE = @compileError("unable to translate macro: undefined identifier `always_inline`");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/pyport.h:365:11
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/pyport.h:365:11
 pub const Py_NO_INLINE = @compileError("unable to translate macro: undefined identifier `noinline`");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/pyport.h:381:11
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/pyport.h:381:11
 pub const Py_EXPORTS_H = "";
 pub const Py_IMPORTED_SYMBOL = @compileError("unable to translate macro: undefined identifier `visibility`");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/exports.h:46:17
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/exports.h:46:17
 pub const Py_EXPORTED_SYMBOL = @compileError("unable to translate macro: undefined identifier `visibility`");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/exports.h:47:17
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/exports.h:47:17
 pub const Py_LOCAL_SYMBOL = @compileError("unable to translate macro: undefined identifier `visibility`");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/exports.h:48:17
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/exports.h:48:17
 pub inline fn PyAPI_FUNC(RTYPE: anytype) @TypeOf(Py_EXPORTED_SYMBOL ++ RTYPE) {
     _ = &RTYPE;
     return Py_EXPORTED_SYMBOL ++ RTYPE;
 }
 pub const PyAPI_DATA = @compileError("unable to translate C expr: unexpected token 'extern'");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/exports.h:94:16
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/exports.h:94:16
 pub const PyMODINIT_FUNC = [*c](Py_EXPORTED_SYMBOL ++ PyObject);
 pub const Py_GCC_ATTRIBUTE = @compileError("unable to translate C expr: unexpected token '__attribute__'");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/pyport.h:443:9
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/pyport.h:443:9
 pub const Py_ALIGNED = @compileError("unable to translate macro: undefined identifier `aligned`");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/pyport.h:450:9
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/pyport.h:450:9
 pub const Py_LL = __helpers.LL_SUFFIX;
 pub const Py_ULL = @compileError("unable to translate macro: undefined identifier `U`");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/pyport.h:467:9
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/pyport.h:467:9
 pub const Py_VA_COPY = va_copy;
 pub const PY_BIG_ENDIAN = @as(c_int, 0);
 pub const PY_LITTLE_ENDIAN = @as(c_int, 1);
@@ -7752,19 +7753,19 @@ pub const PY_DWORD_MAX = __helpers.promoteIntLiteral(c_uint, 4294967295, .decima
 pub const WITH_THREAD = "";
 pub const Py_CAN_START_THREADS = @as(c_int, 1);
 pub const _Py_NO_RETURN = @compileError("unable to translate macro: undefined identifier `__noreturn__`");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/pyport.h:555:11
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/pyport.h:555:11
 pub const _Py_TYPEOF = @compileError("unable to translate C expr: unexpected token '__typeof__'");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/pyport.h:570:11
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/pyport.h:570:11
 pub const _Py_NO_SANITIZE_ADDRESS = "";
 pub const _Py_NO_SANITIZE_THREAD = "";
 pub const _Py_NO_SANITIZE_MEMORY = "";
 pub const PY_CXX_CONST = "";
 pub const _Py_FALLTHROUGH = @compileError("unable to translate macro: undefined identifier `fallthrough`");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/pyport.h:664:11
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/pyport.h:664:11
 pub const _Py_NO_SANITIZE_UNDEFINED = @compileError("unable to translate macro: undefined identifier `no_sanitize_undefined`");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/pyport.h:682:11
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/pyport.h:682:11
 pub const _Py_NONSTRING = @compileError("unable to translate macro: undefined identifier `nonstring`");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/pyport.h:698:11
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/pyport.h:698:11
 pub const Py_PYMACRO_H = "";
 pub inline fn Py_MIN(x: anytype, y: anytype) @TypeOf(if (__helpers.cast(bool, x > y)) y else x) {
     _ = &x;
@@ -7786,27 +7787,27 @@ pub inline fn _Py_ABS_CAST(T: anytype, x: anytype) @TypeOf(if (__helpers.cast(bo
     return if (__helpers.cast(bool, x >= @as(c_int, 0))) T(x) else T((T - (x + @as(c_int, 1))) + @as(c_uint, 1));
 }
 pub const _Py_XSTRINGIFY = @compileError("unable to translate C expr: unexpected token ''");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/pymacro.h:82:9
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/pymacro.h:82:9
 pub inline fn Py_STRINGIFY(x: anytype) @TypeOf(_Py_XSTRINGIFY(x)) {
     _ = &x;
     return _Py_XSTRINGIFY(x);
 }
 pub const Py_MEMBER_SIZE = @compileError("unable to translate C expr: expected ')' instead got 'a number'");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/pymacro.h:91:9
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/pymacro.h:91:9
 pub inline fn Py_CHARMASK(c: anytype) u8 {
     _ = &c;
     return __helpers.cast(u8, c & @as(c_int, 0xff));
 }
 pub const Py_BUILD_ASSERT_EXPR = @compileError("unable to translate macro: undefined identifier `dummy`");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/pymacro.h:98:11
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/pymacro.h:98:11
 pub const Py_BUILD_ASSERT = @compileError("unable to translate C expr: unexpected token 'do'");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/pymacro.h:122:11
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/pymacro.h:122:11
 pub const Py_ARRAY_LENGTH = @compileError("unable to translate macro: undefined identifier `__builtin_types_compatible_p`");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/pymacro.h:146:9
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/pymacro.h:146:9
 pub const PyDoc_VAR = @compileError("unable to translate C expr: unexpected token 'static'");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/pymacro.h:157:9
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/pymacro.h:157:9
 pub const PyDoc_STRVAR = @compileError("unable to translate C expr: unexpected token '='");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/pymacro.h:158:9
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/pymacro.h:158:9
 pub inline fn PyDoc_STR(str: anytype) @TypeOf(str) {
     _ = &str;
     return str;
@@ -7837,7 +7838,7 @@ pub inline fn _Py_IS_ALIGNED(p: anytype, a: anytype) @TypeOf(!((__helpers.cast(u
     return !((__helpers.cast(usize, p) & __helpers.cast(usize, a - @as(c_int, 1))) != 0);
 }
 pub const Py_UNUSED = @compileError("unable to translate macro: undefined identifier `_unused_`");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/pymacro.h:185:11
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/pymacro.h:185:11
 pub inline fn Py_UNREACHABLE() @TypeOf(__builtin.@"unreachable"()) {
     return __builtin.@"unreachable"();
 }
@@ -7886,7 +7887,7 @@ pub inline fn PyMem_New(@"type": anytype, n: anytype) @TypeOf(if (__helpers.cast
     return if (__helpers.cast(bool, __helpers.cast(usize, n) > __helpers.div(PY_SSIZE_T_MAX, __helpers.sizeof(@"type")))) NULL else [*c]@"type" ++ PyMem_Malloc(n * __helpers.sizeof(@"type"));
 }
 pub const PyMem_Resize = @compileError("unable to translate C expr: expected ')' instead got '='");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/pymem.h:73:9
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/pymem.h:73:9
 pub inline fn PyMem_MALLOC(n: anytype) @TypeOf(PyMem_Malloc(n)) {
     _ = &n;
     return PyMem_Malloc(n);
@@ -7959,14 +7960,14 @@ pub const Py_LOCK_H = "";
 pub const Py_CRITICAL_SECTION_H = "";
 pub const Py_OBJECT_H = "";
 pub const PyObject_HEAD = @compileError("unable to translate macro: undefined identifier `ob_base`");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/object.h:60:9
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/object.h:60:9
 pub const _PyObject_EXTRA_INIT = "";
 pub const PyObject_HEAD_INIT = @compileError("unable to translate C expr: unexpected token '{'");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/object.h:82:9
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/object.h:82:9
 pub const PyVarObject_HEAD_INIT = @compileError("unable to translate C expr: unexpected token '{'");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/object.h:89:9
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/object.h:89:9
 pub const PyObject_VAR_HEAD = @compileError("unable to translate macro: undefined identifier `ob_base`");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/object.h:101:9
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/object.h:101:9
 pub const Py_INVALID_SIZE = __helpers.cast(Py_ssize_t, -@as(c_int, 1));
 pub inline fn _PyObject_CAST(op: anytype) @TypeOf(_Py_CAST([*c]PyObject, op)) {
     _ = &op;
@@ -8012,19 +8013,19 @@ pub const Py_CONSTANT_EMPTY_STR = @as(c_int, 7);
 pub const Py_CONSTANT_EMPTY_BYTES = @as(c_int, 8);
 pub const Py_CONSTANT_EMPTY_TUPLE = @as(c_int, 9);
 
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/object.h:650:11: warning: macro 'Py_None' contains a runtime value, translated to function
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/object.h:650:11: warning: macro 'Py_None' contains a runtime value, translated to function
 pub inline fn Py_None() @TypeOf(&_Py_NoneStruct) {
     return &_Py_NoneStruct;
 }
 pub const Py_RETURN_NONE = @compileError("unable to translate C expr: unexpected token 'return'");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/object.h:660:11
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/object.h:660:11
 
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/object.h:674:11: warning: macro 'Py_NotImplemented' contains a runtime value, translated to function
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/object.h:674:11: warning: macro 'Py_NotImplemented' contains a runtime value, translated to function
 pub inline fn Py_NotImplemented() @TypeOf(&_Py_NotImplementedStruct) {
     return &_Py_NotImplementedStruct;
 }
 pub const Py_RETURN_NOTIMPLEMENTED = @compileError("unable to translate C expr: unexpected token 'return'");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/object.h:680:11
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/object.h:680:11
 pub const Py_LT = @as(c_int, 0);
 pub const Py_LE = @as(c_int, 1);
 pub const Py_EQ = @as(c_int, 2);
@@ -8032,7 +8033,7 @@ pub const Py_NE = @as(c_int, 3);
 pub const Py_GT = @as(c_int, 4);
 pub const Py_GE = @as(c_int, 5);
 pub const Py_RETURN_RICHCOMPARE = @compileError("unable to translate C expr: unexpected token 'do'");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/object.h:707:9
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/object.h:707:9
 pub inline fn PyType_FastSubclass(@"type": anytype, flag: anytype) @TypeOf(PyType_HasFeature(@"type", flag)) {
     _ = &@"type";
     _ = &flag;
@@ -8053,7 +8054,7 @@ pub const _Py_IMMORTAL_MINIMUM_REFCNT = @as(c_ulonglong, 1) << @as(c_int, 31);
 pub const _Py_STATIC_FLAG_BITS = __helpers.cast(Py_ssize_t, _Py_STATICALLY_ALLOCATED_FLAG | _Py_IMMORTAL_FLAGS);
 pub const _Py_STATIC_IMMORTAL_INITIAL_REFCNT = __helpers.cast(Py_ssize_t, _Py_IMMORTAL_INITIAL_REFCNT) | (_Py_STATIC_FLAG_BITS << @as(c_int, 48));
 pub const Py_CLEAR = @compileError("unable to translate macro: undefined identifier `_tmp_op_ptr`");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/refcount.h:477:9
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/refcount.h:477:9
 pub const Py_OBJIMPL_H = "";
 pub const PyObject_MALLOC = PyObject_Malloc;
 pub const PyObject_REALLOC = PyObject_Realloc;
@@ -8115,7 +8116,7 @@ pub inline fn PyObject_GC_NewVar(@"type": anytype, typeobj: anytype, n: anytype)
     return _Py_CAST([*c]@"type", _PyObject_GC_NewVar(typeobj, n));
 }
 pub const Py_VISIT = @compileError("unable to translate macro: undefined identifier `vret`");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/objimpl.h:193:9
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/objimpl.h:193:9
 pub const Py_bf_getbuffer = @as(c_int, 1);
 pub const Py_bf_releasebuffer = @as(c_int, 2);
 pub const Py_mp_ass_subscript = @as(c_int, 3);
@@ -8275,19 +8276,19 @@ pub inline fn PyBool_Check(x: anytype) @TypeOf(Py_IS_TYPE(x, &PyBool_Type)) {
     return Py_IS_TYPE(x, &PyBool_Type);
 }
 
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/boolobject.h:25:11: warning: macro 'Py_False' contains a runtime value, translated to function
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/boolobject.h:25:11: warning: macro 'Py_False' contains a runtime value, translated to function
 pub inline fn Py_False() @TypeOf(_PyObject_CAST(&_Py_FalseStruct)) {
     return _PyObject_CAST(&_Py_FalseStruct);
 }
 
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/boolobject.h:26:11: warning: macro 'Py_True' contains a runtime value, translated to function
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/boolobject.h:26:11: warning: macro 'Py_True' contains a runtime value, translated to function
 pub inline fn Py_True() @TypeOf(_PyObject_CAST(&_Py_TrueStruct)) {
     return _PyObject_CAST(&_Py_TrueStruct);
 }
 pub const Py_RETURN_TRUE = @compileError("unable to translate C expr: unexpected token 'return'");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/boolobject.h:41:11
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/boolobject.h:41:11
 pub const Py_RETURN_FALSE = @compileError("unable to translate C expr: unexpected token 'return'");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/boolobject.h:42:11
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/boolobject.h:42:11
 pub const Py_FLOATOBJECT_H = "";
 pub inline fn PyFloat_Check(op: anytype) @TypeOf(PyObject_TypeCheck(op, &PyFloat_Type)) {
     _ = &op;
@@ -8298,9 +8299,9 @@ pub inline fn PyFloat_CheckExact(op: anytype) @TypeOf(Py_IS_TYPE(op, &PyFloat_Ty
     return Py_IS_TYPE(op, &PyFloat_Type);
 }
 pub const Py_RETURN_NAN = @compileError("unable to translate C expr: unexpected token 'return'");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/floatobject.h:19:9
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/floatobject.h:19:9
 pub const Py_RETURN_INF = @compileError("unable to translate C expr: unexpected token 'do'");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/floatobject.h:21:9
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/floatobject.h:21:9
 pub const Py_COMPLEXOBJECT_H = "";
 pub inline fn PyComplex_Check(op: anytype) @TypeOf(PyObject_TypeCheck(op, &PyComplex_Type)) {
     _ = &op;
@@ -8435,7 +8436,7 @@ pub inline fn PyModule_CheckExact(op: anytype) @TypeOf(Py_IS_TYPE(op, &PyModule_
     return Py_IS_TYPE(op, &PyModule_Type);
 }
 pub const PyModuleDef_HEAD_INIT = @compileError("unable to translate C expr: unexpected token '{'");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/moduleobject.h:60:9
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/moduleobject.h:60:9
 pub const Py_mod_create = @as(c_int, 1);
 pub const Py_mod_exec = @as(c_int, 2);
 pub const Py_MONITORING_H = "";
@@ -8454,7 +8455,7 @@ pub inline fn PyTraceBack_Check(v: anytype) @TypeOf(Py_IS_TYPE(v, &PyTraceBack_T
 }
 pub const Py_SLICEOBJECT_H = "";
 
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/sliceobject.h:14:11: warning: macro 'Py_Ellipsis' contains a runtime value, translated to function
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/sliceobject.h:14:11: warning: macro 'Py_Ellipsis' contains a runtime value, translated to function
 pub inline fn Py_Ellipsis() @TypeOf(&_Py_EllipsisObject) {
     return &_Py_EllipsisObject;
 }
@@ -8531,9 +8532,9 @@ pub const NOWAIT_LOCK = @as(c_int, 0);
 pub const PY_TIMEOUT_T = c_longlong;
 pub const Py_MODSUPPORT_H = "";
 pub const PyModule_AddIntMacro = @compileError("unable to translate C expr: unexpected token ''");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/modsupport.h:47:9
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/modsupport.h:47:9
 pub const PyModule_AddStringMacro = @compileError("unable to translate C expr: unexpected token ''");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/modsupport.h:48:9
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/modsupport.h:48:9
 pub const Py_CLEANUP_SUPPORTED = __helpers.promoteIntLiteral(c_int, 0x20000, .hex);
 pub const PYTHON_API_VERSION = @as(c_int, 1013);
 pub const PYTHON_API_STRING = "1013";
@@ -8557,13 +8558,13 @@ pub const Py_PYTHONRUN_H = "";
 pub const Py_PYLIFECYCLE_H = "";
 pub const Py_CEVAL_H = "";
 pub const Py_BEGIN_ALLOW_THREADS = @compileError("unable to translate macro: undefined identifier `_save`");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/ceval.h:119:9
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/ceval.h:119:9
 pub const Py_BLOCK_THREADS = @compileError("unable to translate macro: undefined identifier `_save`");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/ceval.h:122:9
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/ceval.h:122:9
 pub const Py_UNBLOCK_THREADS = @compileError("unable to translate macro: undefined identifier `_save`");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/ceval.h:123:9
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/ceval.h:123:9
 pub const Py_END_ALLOW_THREADS = @compileError("unable to translate macro: undefined identifier `_save`");
-// /nix/store/lhslqlnl61ckzv0hzjvrhk7a4z8rfqr1-home-manager-path/include/python3.14/ceval.h:124:9
+// /nix/store/xjdv3a5h8kqzhbk87d6z75x2cn9kvdsk-home-manager-path/include/python3.14/ceval.h:124:9
 pub const FVC_MASK = @as(c_int, 0x3);
 pub const FVC_NONE = @as(c_int, 0x0);
 pub const FVC_STR = @as(c_int, 0x1);
